@@ -1,0 +1,83 @@
+#!/bin/sh
+
+mkdir "$HOME/bin" || {
+    echo "error: could not create $HOME/bin" >&2
+    exit 1
+}
+
+if test -d "$HOME/git"; then
+    echo 'error: not a fresh CloudShell home directory.' >&2
+    exit 1
+fi
+
+mkdir "$HOME/git" || {
+    echo "error: could not create $HOME/git" >&2
+    exit 1
+}
+
+cd "$HOME/git" || {
+    echo "error: could not cd into $HOME/git" >&2
+    exit 1
+}
+
+for repo in chpath chprompt shelly; do
+    git clone "https://github.com/ronchi-oss/${repo}"
+done
+
+cd "$HOME/git/shelly" || {
+    echo "error: could not cd into $HOME/git/shelly" >&2
+    exit 1
+}
+
+export SHELLY_BIN="$HOME/bin"
+
+./bin/shelly-install -x shelly -s main
+./bin/shelly-install shelly-completion.bash bash_completion
+
+if ! type shelly >/dev/null 2>&1; then
+    echo 'error: could not install shelly' >&2
+    exit 1
+fi
+
+shelly version
+
+for project in chpath chprompt; do
+    cd "$HOME/git/$project" || {
+        echo "error: could not cd into $HOME/git/$project" >&2
+        exit 1
+    }
+    shelly install "${project}.sh"
+    shelly install "${project}-completion.bash" bash_completion
+    source "${SHELLY_BIN}/${project}.sh"
+    if ! type "$project" >/dev/null 2>&1; then
+        echo "error: could not install $project" >&2
+        exit 1
+    fi
+    "$project" version
+done
+
+sudo yum install -y emacs tree
+
+tee -a ~/.bash_profile <<"EOF"
+# ---
+export CHPROMPT_HOOKS='tmux_chprompt_hook'
+export EDITOR=emacs
+export SHELLY_BIN=$HOME/bin
+
+source $SHELLY_BIN/chpath.sh
+source $SHELLY_BIN/chpath-completion.bash
+source $SHELLY_BIN/chprompt.sh
+source $SHELLY_BIN/chprompt-completion.bash
+source $SHELLY_BIN/shelly-completion.bash
+
+tmux_chprompt_hook() {
+    tmux_session="$(tmux list-sessions | grep '(attached)$' | cut -d ':' -f 1)"
+    tmux set-environment -t "=$tmux_session" CHPROMPT_FORMAT "$@"
+}
+
+chprompt set ${CHPROMPT_FORMAT-'\W' bash :cat: '\n' exit_status_dwim}
+
+tmux set -g status on
+tmux set -g status-left ''
+tmux set -g status-position top
+EOF
