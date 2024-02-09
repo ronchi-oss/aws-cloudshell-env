@@ -57,12 +57,10 @@ for project in chpath chprompt; do
     "$project" version
 done
 
-sudo yum install -y emacs tree
-
 tee -a ~/.bash_profile <<"EOF"
 # ---
 export CHPROMPT_HOOKS='tmux_chprompt_hook'
-export EDITOR=emacs
+export EDITOR=vim
 export SHELLY_BIN=$HOME/bin
 
 source $SHELLY_BIN/chpath.sh
