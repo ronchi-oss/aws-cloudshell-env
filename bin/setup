@@ -48,7 +48,8 @@ for project in chpath chprompt; do
     }
     shelly install "${project}.sh"
     shelly install "${project}-completion.bash" bash_completion
-    source "${SHELLY_BIN}/${project}.sh"
+    # shellcheck source=/dev/null
+    . "${SHELLY_BIN}/${project}.sh"
     if ! type "$project" >/dev/null 2>&1; then
         echo "error: could not install $project" >&2
         exit 1
