@@ -74,7 +74,7 @@ tmux_chprompt_hook() {
     tmux set-environment -t "=$tmux_session" CHPROMPT_FORMAT "$@"
 }
 
-chprompt set ${CHPROMPT_FORMAT-'\W' bash :cat: '\n' exit_status_dwim}
+chprompt set ${CHPROMPT_FORMAT-'\W' bash AWS_REGION :cat: '\n' exit_status_dwim}
 
 tmux set -g status on
 tmux set -g status-left ''
